@@ -1,0 +1,40 @@
+---
+title: Splitting ages into generations using `cut()`
+output: 
+  html_document:
+    df_print: paged
+abstract: >
+  This document walks through the process of assigning individuals to a generation according to their age.
+---
+
+## Reading in the data 
+
+The following code chunk returns the full file path to the data set by using the `rprojroot` package to find the root of this project.
+
+```{r, message=FALSE, warning=FALSE}
+if(!'needs'%in%installed.packages()) { 
+  install.packages('needs', 
+                   repos = "https://cloud.r-project.org")
+}
+needs::needs('rprojroot')
+root <- rprojroot::find_rstudio_root_file()
+data.file <- file.path(root,'data','Sub.csv') 
+```
+
+Next, we want to read in the data using the fast read function, `fread`, from the `data.table` package and then observe the data.
+
+```{r}
+julie_data <- data.table::fread(data.file)
+head(julie_data, 100)
+```
+
+From the above table, we see that the data set contains 20 columns.  We want to add a column to this data set named `GENERATION` the values assigned to this column will depend whether an an individual's age falls into one of the following four intervals.
+
+
+# define the breakpoints for the intervals brks <- c(17,36,58,73,99)
+
+# save the AGE column as an object called ages ages <- julie_data$AGE
+
+# Add a new column called GENERATION to julie_data # This new column is produced by cutting `ages` into one of four intervals # and assigning a label of 1, 2, 3, or 4 for each interval julie_data[, GENERATION := cut(ages, breaks = brks, label = 1:(length(brks)-1))]
+
+# save the updated data set in a new file in the same directory as the previous data readr::write_csv(julie_data, path = paste(dirname(file), 'generation.csv', sep = '/'))
