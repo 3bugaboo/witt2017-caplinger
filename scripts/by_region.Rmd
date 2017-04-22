@@ -1,0 +1,137 @@
+---
+title: "Recursive Regions"
+author: "Caplinger"
+date: "April 22, 2017"
+output: html_document
+---
+
+## Read data
+
+```{r}
+dats0 <- read.csv('../data/Region0.csv')
+dats1 <- read.csv('../data/Region1.csv')
+dats2 <- read.csv('../data/Region2.csv')
+dats3 <- read.csv('../data/Region3.csv')
+
+dats0$EMPSTAT <- as.factor(dats0$EMPSTAT) 
+dats0$OWNERSHP <- as.factor(dats0$OWNERSHP) 
+dats0$MARST <- as.factor(dats0$MARST) 
+dats0$HCOVANY <- as.factor(dats0$HCOVANY) 
+dats0$METRO <- as.factor(dats0$METRO)
+
+dats1$EMPSTAT <- as.factor(dats1$EMPSTAT) 
+dats1$OWNERSHP <- as.factor(dats1$OWNERSHP) 
+dats1$MARST <- as.factor(dats1$MARST) 
+dats1$HCOVANY <- as.factor(dats1$HCOVANY) 
+dats1$METRO <- as.factor(dats1$METRO)
+
+dats2$EMPSTAT <- as.factor(dats2$EMPSTAT) 
+dats2$OWNERSHP <- as.factor(dats2$OWNERSHP) 
+dats2$MARST <- as.factor(dats2$MARST) 
+dats2$HCOVANY <- as.factor(dats2$HCOVANY) 
+dats2$METRO <- as.factor(dats2$METRO)
+
+dats3$EMPSTAT <- as.factor(dats3$EMPSTAT) 
+dats3$OWNERSHP <- as.factor(dats3$OWNERSHP) 
+dats3$MARST <- as.factor(dats3$MARST) 
+dats3$HCOVANY <- as.factor(dats3$HCOVANY) 
+dats3$METRO <- as.factor(dats3$METRO)
+```
+
+First, let's create a training dataset and a testing dataset. The training data set will be some fraction $(100\times p\%)$ of the total number of observations in the full dataset.  We can create the training and test datasets by sampling $p \times \mbox{number of rows}$ rows from the full dataset.  A common fractional value used to create the training dataset is $70\%$.
+
+```{r}
+p <- 0.7
+set.seed(42)
+train_rows0 <- sample(nrow(dats0), size = p*nrow(dats0))
+test_rows0  <- which(!1:nrow(dats0)%in%train_rows0)
+train_rows1 <- sample(nrow(dats1), size = p*nrow(dats1))
+test_rows1  <- which(!1:nrow(dats1)%in%train_rows1)
+train_rows2 <- sample(nrow(dats2), size = p*nrow(dats2))
+test_rows2  <- which(!1:nrow(dats2)%in%train_rows2)
+train_rows3 <- sample(nrow(dats3), size = p*nrow(dats3))
+test_rows3  <- which(!1:nrow(dats3)%in%train_rows3)
+```
+
+Next, we need to identify and parse out the columns representing the features and response variable(s) of interest.
+
+```{r}
+features <- c("FAMSIZE","OWNERSHP","MARST","HCOVANY","EMPSTAT",
+              "METRO")
+response <- c("POVERTY")
+```
+
+Now, we can create the datasets
+
+```{r}
+x_train0 <- dats[train_rows0, features]
+y_train0 <- dats[train_rows0, response]
+x_test0  <- dats[test_rows0,  features]
+y_test0  <- dats[test_rows0,  response]
+train_data0 <- cbind(x_train0, y_train0)
+test_data0  <- cbind(x_test0, y_test0)
+
+x_train1 <- dats[train_rows1, features]
+y_train1 <- dats[train_rows1, response]
+x_test1  <- dats[test_rows1,  features]
+y_test1  <- dats[test_rows1,  response]
+train_data1 <- cbind(x_train1, y_train1)
+test_data1  <- cbind(x_test1, y_test1)
+
+x_train2 <- dats[train_rows2, features]
+y_train2 <- dats[train_rows2, response]
+x_test2  <- dats[test_rows2,  features]
+y_test2  <- dats[test_rows2,  response]
+train_data2 <- cbind(x_train2, y_train2)
+test_data2  <- cbind(x_test2, y_test2)
+
+x_train3 <- dats[train_rows3, features]
+y_train3 <- dats[train_rows3, response]
+x_test3  <- dats[test_rows3,  features]
+y_test3  <- dats[test_rows3,  response]
+train_data3 <- cbind(x_train3, y_train3)
+test_data3  <- cbind(x_test3, y_test3)
+```
+
+## Linear Regression
+
+Train the model using the training sets and check score
+
+```{r}
+linear <- lm(y_train ~ ., data = train_data)
+
+summary(linear)
+
+predicted_lin = predict(linear, x_test)
+
+press <- sqrt(sum((y_test - predicted_lin)^2))/nrow(x_test)
+```
+
+## Logistic Regression
+
+Train the model using the training sets and check score
+
+```{r}
+lapply(X = 0:3,
+       FUN = function(x) {
+
+y_var <- paste0('y_train',x)
+x_var <- paste0('x_train',x)
+
+Y_train    <- as.numeric(eval(parse(text = y_var)) > 100)
+Train_Data <- cbind(eval(parse(text = x_var)), Y_train)
+
+
+zout <- list()
+
+zout$model   <- glm(Y_train ~ ., 
+                  data = Train_Data, 
+                  family = 'binomial')
+
+zout$summary <- summary(logistic)
+
+zout$predicted_vals = predict(logistic, x_test, type = 'response')
+
+return(zout)
+})
+```
