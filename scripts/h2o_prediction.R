@@ -34,12 +34,12 @@ y_test <- dats[test_rows, Response]
 train_data <- cbind(x_train, y_train)
 test_data <- cbind(x_test, y_test)
 
-write.csv(train_data, 'data/train_data.csv', row.names = F)
-write.csv(test_data, 'data/test_data.csv', row.names = F)
+write.csv(train_data, 'datatrain_data.csv', row.names = F)
+write.csv(test_data, 'datatest_data.csv', row.names = F)
 
 h2o::h2o.init()
-train <- h2o::h2o.importFile('data/train_data.csv')
-test <- h2o::h2o.importFile('data/test_data.csv')
+train <- h2o::h2o.importFile('datatrain_data.csv')
+test <- h2o::h2o.importFile('datatest_data.csv')
 logistic <- h2o::h2o.glm(x = features, 
                          y = response, 
                          training_frame = train,
@@ -50,4 +50,4 @@ h2o_prediction <- h2o::h2o.predict(logistic, newdata = test)
 stuff <- as.data.frame(h2o_prediction)
 merge <- cbind(test_data$HCOVANY, stuff)
 
-write.csv(merge, file = 'data/prediction.csv', row.names = F)
+write.csv(merge, file = 'dataprediction.csv', row.names = F)
